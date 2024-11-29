@@ -1,0 +1,50 @@
+fail_fast: true
+default_stages: [pre-commit, pre-push]
+minimum_pre_commit_version: 3.2.0
+
+
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.3.0
+    hooks:
+      - id: ruff
+        args: ["--fix"]
+        stages: [pre-commit]
+      - id: ruff-format
+        stages: [pre-commit]
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        stages: [pre-commit]
+  - repo: local
+    hooks:
+      - id: fixit
+        name: FixIt
+        language: system
+        entry: fixit lint
+        types: [ python ]
+        stages: [pre-commit]
+        require_serial: true
+      - id: mypy
+        name: Mypy
+        language: system
+        entry: python -m mypy
+        types: [ python ]
+        stages: [pre-commit]
+        require_serial: true
+  - repo: git@github.com:travelperk/security_pipeline.git
+    rev: v1.0.8
+    hooks:
+      - id: secrets
+        name: Secret Scanning
+        description: Secret leakage prevention tool powered by gitleaks.
+        stages: [pre-commit]
+      - id: sast
+        name: Static Code Analysis
+        description: Static code analysis tool powered by semgrep.
+        stages: [pre-push]
+      - id: check-codeowners
+        name: Check CODEOWNERS
+        description: Validates that all files are covered by CODEOWNERS
+        stages: [pre-push]

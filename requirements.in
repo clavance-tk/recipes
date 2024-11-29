@@ -1,0 +1,8 @@
+boto3==1.34.135
+requests==2.31.0
+
+tklib_trace==0.10.0
+tklib_aws==2.0.0
+# If you need to use pydantic 1.X.X remove the following line, change the import of BaseSettings to pydantic.BaseSettings
+# and replace 'validation_alias=AliasChoices("env", "dd_env")' by 'env=("env", "dd_env")' in configuration/settings.py
+pydantic-settings==2.3.4

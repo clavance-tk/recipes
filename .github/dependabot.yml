@@ -1,0 +1,23 @@
+
+version: 2
+
+registries:
+  python-tk:
+    type: python-index
+    url: https://pypi-256045177368.d.codeartifact.eu-west-1.amazonaws.com/pypi/pypi/simple/
+    username: aws
+    password: ${{secrets.PIP_INDEX_PASSWORD}}
+    replaces-base: true
+
+updates:
+  - directory: /
+    package-ecosystem: pip
+    insecure-external-code-execution: allow # Some libraries run code in the manifest.
+    registries: "*"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 2
+    ignore:
+      # These dependencies are for local testing only and should be updated via copier to stay in sync with CircleCi
+     - dependency-name: pulumi-local
+     - dependency-name: awscli-local

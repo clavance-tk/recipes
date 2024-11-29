@@ -1,0 +1,45 @@
+version: "3.8"
+
+services:
+  dependency-installer:
+    image: public.ecr.aws/lambda/python:3.11 # Need to use the same image that will run the dependencies to make sure everything is set up correctly
+    volumes:
+      - "./:/app"
+      - ~/.config/pip/pip.conf:/root/.config/pip/pip.conf
+    working_dir: /app
+    entrypoint: ""
+    command: ./scripts/install-lambda-dependencies.sh
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+
+  recipes-localstack:
+    container_name: "recipes-${LOCALSTACK_DOCKER_NAME-localstack_main}"
+    image: localstack/localstack:3.0.1
+    ports:
+      - "127.0.0.1:4000:4566"
+    environment:
+      LAMBDA_IGNORE_ARCHITECTURE: 1 # Use the architecture of the system so support ARM (mac) and AMD (thinkpad) architectures
+      AWS_DEFAULT_REGION: "us-east-1"
+      DEBUG: 1
+      DOCKER_HOST: unix:///var/run/docker.sock
+      HOT_RELOAD_PATH: ${PWD}
+      ACTIVATE_PRO: 0 # Newer versions of local stack needs to be told it's not pro and needs no creds
+    # nosemgrep: exposing-docker-socket-volume owner:squad-coreservices reason:required to work with lambdas locally - not in production
+    volumes:
+      # Allow us to get our private components repo in the container
+      - ~/.config/pip/pip.conf:/root/.config/pip/pip.conf
+      # Allow the container access to the local machines current aws config for downloading from tooling
+      - ~/.aws:/root/.aws
+      # Pulumi local state to reduce docker up time on restarts
+      - "./pulumi_docker:/root/.pulumi"
+      # Localstack config
+      - "./localstack/init-aws.sh:/etc/localstack/init/ready.d/init-aws.sh"  # ready hook
+      - "${LOCALSTACK_VOLUME_DIR:-./volume}:/var/lib/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock" # nosemgrep owner:squad-coreservices reason:required to work on lambdas - not in production
+      # Lambda config
+      - "./:/app"
+    entrypoint: /app/localstack/entrypoint.sh
+    depends_on:
+      dependency-installer:
+        condition: service_completed_successfully

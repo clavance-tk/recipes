@@ -1,0 +1,15 @@
+-r requirements.txt
+-c requirements.txt
+
+
+tklib-dev==0.7.2
+isort==5.13.2
+pytest-cov==4.1.0
+
+pre-commit==3.6.2
+
+# types
+mypy==1.11.0
+aws-lambda-typing==2.19.0
+
+tk-dev-create-components==3.41.2

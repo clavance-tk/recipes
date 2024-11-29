@@ -1,0 +1,6 @@
+# Only these dependencies are needed for docker's localstack testing so they are isolated,
+# but we can still control the versions if we need to
+
+pulumi-local==1.2.1
+awscli-local==0.21.1
+tk-dev-create-components>=3.40.0<4.0.0

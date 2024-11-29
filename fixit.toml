@@ -1,0 +1,8 @@
+[fixit.toml]
+root = true
+disable = [
+    "fixit.rules"
+]
+enable = [
+    "tklib_dev.tk_fixit.tk_rules"
+]

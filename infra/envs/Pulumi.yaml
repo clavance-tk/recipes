@@ -1,0 +1,8 @@
+name: recipes
+runtime:
+  name: python
+description: Pulumi project for recipes
+
+# This way it behaves like Terraform, refresh the state before every plan/apply
+options:
+  refresh: always

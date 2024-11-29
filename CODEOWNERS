@@ -1,0 +1,11 @@
+# ---- Your Code ----
+* @
+CODEOWNERS @
+README.md @
+
+# ---- Security team repo owned elements (do not change this) ----
+.trivyignore.yaml @travelperk/squad-prodsec
+.semgrepignore @travelperk/squad-prodsec
+.gitleaks.toml @travelperk/squad-prodsec
+.github/workflows/security_pipeline_report.yml @travelperk/squad-prodsec
+SECURITY.md @travelperk/squad-prodsec

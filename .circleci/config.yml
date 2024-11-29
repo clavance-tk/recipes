@@ -1,0 +1,296 @@
+version: 2.1
+
+orbs:
+  common: travelperk/common@4.0.0
+
+filters:
+  main_only: &main_only
+    filters:
+      branches:
+        only:
+          - main
+
+  pr_only: &pr_only
+    filters:
+      branches:
+        ignore:
+          - main
+
+jobs:
+  prepare_pip:
+    resource_class: small
+    working_directory: /app
+    docker:
+      - image: ${AWS_ECR_ACCOUNT_URL_US}/tk-python:v6.4-3.11.7
+    steps:
+      - common/clone
+      - restore_cache:
+          key: '{{ .Environment.CIRCLE_PROJECT_REPONAME }}-{{ .Environment.PYTHON_CACHE_VERSION_KEY }}-{{ checksum "requirements-dev.txt" }}-venv'
+      - common/python_install_dependencies:
+          restore_venv: false # already done above
+          use_pip_cache: true
+          requirements_file: requirements-dev.txt
+
+  lint:
+    executor:
+      name: common/linter
+      python_version: 3.11.7
+      base_image_version: v6.4
+      base_image_kind: tk-python
+    steps:
+      - common/clone:
+          # increasing depth and fetch_depth to prevent "fatal: origin/master...HEAD: no merge base"
+          depth: 200
+          fetch_depth: 200
+      - common/python_use_cached_virtualenv:
+          requirements_file: requirements-dev.txt
+      - run:
+          name: format
+          command: ruff format --check src/ tests/
+      - run:
+          name: isort
+          command: isort --check src/ tests/
+      - run:
+          name: ruff
+          command: ruff src/ tests/
+      - run:
+          name: fixit
+          command: fixit lint src/ tests/
+      - run:
+          name: mypy
+          command: mypy src/ tests/
+      - common/cancel_workflow_on_failure
+
+  test:
+    executor:
+      name: common/linter
+      python_version: 3.11.7
+      base_image_version: v6.4
+      base_image_kind: tk-python
+    steps:
+      - common/clone
+      - common/python_use_cached_virtualenv:
+          requirements_file: requirements-dev.txt
+      - run:
+          name: pytest
+          command: ENV=test pytest --cov-fail-under=95 --cov=src/ --cov-report=term-missing --cov-report=html:cov_report --junitxml=pytest.xml
+      - store_test_results:
+          path: pytest.xml
+      - store_artifacts:
+          path: cov_report/
+
+  update_lambda_code:
+    executor: common/aws
+    parameters:
+      domain_name:
+        type: string
+        description: The domain
+      project_name:
+        type: string
+        description: Project name that the Lambda belongs to
+      lambda_name:
+        type: string
+        description: Name of the lambda
+      code_path:
+        type: string
+        description: Source code directory used in S3 bundle path
+      env:
+        type: string
+        description: Env name
+    steps:
+      - checkout
+      - common/aws_login:
+          default_aws_profile: <<parameters.env>>
+      - run:
+          name: Swap the previous Lambda alias to current live
+          command: |
+            set_previous_alias_as_current_live_alias.py --function <<parameters.lambda_name>>
+      - run:
+          name: Update the function code and wait until successful
+          command: |
+            update_function_code.py --function <<parameters.lambda_name>> \
+            --bucket_name tk-<<parameters.env>>-lambda-bundles \
+            --key_name <<parameters.domain_name>>/<< parameters.project_name >>/<< parameters.code_path >>/build_$CIRCLE_SHA1.zip
+      - run:
+          name: Publish a new version of the Lambda and update live alias
+          command: |
+            publish_new_lambda_version_and_set_live_alias.py --function <<parameters.lambda_name>> --build $CIRCLE_SHA1
+
+  remove_unwanted_function_versions:
+    executor: common/aws
+    parameters:
+      project_name:
+        type: string
+        description: Project name that the Lambda belongs to
+      env:
+        type: string
+        description: Env name
+    steps:
+      - checkout
+      - common/aws_login:
+          default_aws_profile: <<parameters.env>>
+      - run:
+          name: Runs a script to remove unwanted lambda function versions leaving only the most recent X amount
+          command: |
+            delete_unwanted_lambda_versions.py --project-name <<parameters.project_name>>
+
+workflows:
+  version: 2
+  main:
+    jobs:
+      - prepare_pip:
+          context: [aws, codeartifact]
+      - lint:
+          context: [aws, codeartifact]
+          requires:
+            - prepare_pip
+      - test:
+          context: [aws, codeartifact]
+          requires:
+            - prepare_pip
+      - common/preview_pulumi:
+          name: preview_pulumi_staging
+          context: [ aws, pulumi, github, codeartifact ]
+          env: staging
+          stack_name: recipes
+          use_requirements_file: true
+          python_version: 3.11.7
+          base_image_version: v6.4
+          requires:
+            - lint
+            - test
+          <<: *pr_only
+      - common/preview_pulumi:
+          name: preview_pulumi_prod
+          context: [ aws, pulumi, github, codeartifact ]
+          env: prod
+          stack_name: recipes
+          use_requirements_file: true
+          python_version: 3.11.7
+          base_image_version: v6.4
+          requires:
+            - lint
+            - test
+          <<: *pr_only
+
+      # (Optional) Deploy a test version of the Lambda to staging
+      - hold:
+          name: Release a test deployment to staging
+          type: approval
+          requires:
+            - preview_pulumi_staging
+          <<: *pr_only
+      - common/deploy_pulumi_local:
+          name: deploy_pulumi_staging_test
+          context: [ aws, pulumi, github, codeartifact ]
+          env: staging
+          stack_name: recipes
+          use_requirements_file: true
+          python_version: 3.11.7
+          base_image_version: v6.4
+          requires:
+            - Release a test deployment to staging
+          <<: *pr_only
+      - update_lambda_code:
+          name: update_lambda_code_staging
+          context: [ "aws", "codeartifact" ]
+          domain_name: recipes
+          project_name: recipes
+          code_path: src
+          matrix:
+            parameters:
+              env: [ staging ]
+              lambda_name:
+                [
+                  
+                  recipes-get-recipes,
+                  
+                ]
+          requires:
+            - deploy_pulumi_staging_test
+          <<: *pr_only
+
+      # (Optional) Deploy a canary version of the Lambda to prod, requires PR approval
+      - canary_deploy_hold:
+          name: Deploy_canary_version
+          type: approval
+          requires:
+            - lint
+            - test
+          <<: *pr_only
+      - common/lambda_canary_deploy:
+          context: [ "aws", "codeartifact", "github" ]
+          domain_name: recipes
+          project_name: recipes
+          code_path: src
+          canary_weight_percentage: 10 # Configurable percentage of traffic to be sent to the canary version
+          matrix:
+            parameters:
+              env: [ prod ]
+          requires:
+            - Deploy_canary_version
+          <<: *pr_only
+      - canary_finish_hold:
+          name: Finish_canary_deployment
+          type: approval
+          requires:
+            - common/lambda_canary_deploy
+          <<: *pr_only
+      - common/lambda_canary_finish:
+          context: [aws, codeartifact]
+          env: prod
+          project_name: recipes
+          requires:
+            - Finish_canary_deployment
+          <<: *pr_only
+
+      # Deploy to all envs on merge to main
+      - common/deploy_pulumi_local:
+          name: deploy_pulumi_staging
+          context: [ aws, pulumi, github, codeartifact ]
+          env: staging
+          stack_name: recipes
+          use_requirements_file: true
+          python_version: 3.11.7
+          base_image_version: v6.4
+          requires:
+            - lint
+            - test
+          <<: *main_only
+      - common/deploy_pulumi_local:
+          name: deploy_pulumi_prod
+          context: [ aws, pulumi, github, codeartifact ]
+          env: prod
+          stack_name: recipes
+          use_requirements_file: true
+          python_version: 3.11.7
+          base_image_version: v6.4
+          requires:
+            - lint
+            - test
+          <<: *main_only
+      - update_lambda_code:
+          context: [ "aws", "codeartifact" ]
+          domain_name: recipes
+          project_name: recipes
+          code_path: src
+          matrix:
+            alias: update_lambda_code_main
+            parameters:
+              env: [ staging, prod ]
+              lambda_name:
+                [
+                  
+                  recipes-get-recipes,
+                  
+                ]
+          requires:
+            - deploy_pulumi_prod
+      - remove_unwanted_function_versions:
+          context: [ "aws", "codeartifact" ]
+          project_name: recipes
+          matrix:
+            parameters:
+              env: [ staging, prod ]
+          requires:
+            - update_lambda_code_main

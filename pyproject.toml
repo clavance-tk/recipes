@@ -1,0 +1,116 @@
+[tool.isort]
+profile = "black"
+line_length = 120
+combine_as_imports = true
+known_tk = [
+  "tklib_trace",
+  "tklib_dev",
+  "travelperk_allauth",
+  "travelmodels",
+]
+sections = [
+  "FUTURE",
+  "STDLIB",
+  "THIRDPARTY",
+  "TK",
+  "FIRSTPARTY",
+  "LOCALFOLDER",
+]
+import_heading_stdlib = "Standard Library"
+import_heading_thirdparty = "Dependencies"
+import_heading_tk = "Travelperk libraries"
+import_heading_firstparty = "From apps"
+import_heading_localfolder = "Local imports"
+
+[tool.fixit]
+root = true
+
+[tool.coverage.report]
+exclude_also = [
+    "def __repr__",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    ]
+
+[tool.coverage.run]
+omit = [
+  "conftest.py",
+  "main.py",
+]
+
+[tool.mypy]
+plugins = "pydantic.mypy"
+files = "src,tests"
+mypy_path = "src"
+
+
+[tool.pytest.ini_options]
+pythonpath = "src/"
+testpaths = "tests/"
+
+[tool.ruff]
+# Exclude a variety of commonly ignored directories.
+exclude = [
+    "lib",
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".hg",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "docs",
+    "node_modules",
+    "venv",
+]
+
+# Same as Black.
+line-length = 120
+
+# Assume Python 3.11.
+target-version = "py311"
+
+[tool.ruff.lint]
+# Enable pycodestyle (`E`), Pyflakes (`F`) and Warning (`W`) codes
+# G004 Checks for uses of f-strings to format logging messages.
+select = ["E", "F", "W", "TCH", "G004"]
+ignore = ["E501"]
+
+# Allow autofix for all enabled rules (when `--fix`) is provided.
+fixable = ["A", "B", "C", "D", "E", "F", "I", "TCH"]
+unfixable = []
+per-file-ignores = {"*/__init__.py"=["F401"]}
+
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.lint.mccabe]
+# Unlike Flake8, default to a complexity level of 10.
+max-complexity = 10
+
+[tool.ruff.format]
+# Like Black, use double quotes for strings.
+quote-style = "double"
+
+# Like Black, indent with spaces, rather than tabs.
+indent-style = "space"
+
+# Like Black, respect magic trailing commas.
+skip-magic-trailing-comma = false
+
+# Like Black, automatically detect the appropriate line ending.
+line-ending = "auto"
+
+exclude = []

@@ -1,0 +1,30 @@
+secretsprovider: awskms:///arn:aws:kms:eu-west-1:256045177368:key/92918d93-25b3-4d57-9b29-a2d455b77b7f?region=eu-west-1
+encryptedkey: AQICAHiwWorBpT+Ddp6P7D3FG5G747t6eeBxMaaKXtR+mZ2bIQH4b+rfTHU0vwDj1UrQezzuAAAAfjB8BgkqhkiG9w0BBwagbzBtAgEAMGgGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMtF+CdBMkyIx/zCQEAgEQgDu3l3BHaH//NQECqQZn2YGl3JIjSOkxIiq024bMWyfohbihhXskkNkGslu/KatOYYTEiNyjNWHexquLlA==
+
+config:
+  # provider config
+  aws:profile: prod
+  aws:region: eu-west-1
+  recipes:squad: support-os
+
+  recipes:aws_resources:
+    
+    - code_path: src
+      handler: api/handler.get_recipes_handler
+      kind: lambda
+      memory_size: 1024
+      name: recipes-get-recipes
+      runtime: python3.11
+      timeout: 5
+    
+
+    - kind: apiGateway
+      name: recipes-api
+      internal: true
+      triggers:
+        
+        - target: recipes-get-recipes
+          kind: lambda
+          path: /recipes
+          method: GET
+        

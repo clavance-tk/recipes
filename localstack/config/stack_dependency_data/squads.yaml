@@ -1,0 +1,20 @@
+---
+test:
+  tags:
+    Owner: test
+    Tribe: enablers
+    CostCenter: engineering
+    ResourceGroup: test
+  slack_channel: "#test"
+  github: "travelperk/test"
+  notification_slack_channels:
+    _default: "#test-alerts"
+    _staging: "#test-alerts"
+    _sandbox: "#test-alerts"
+    alerts: "#test-alerts"
+    test-alerts: "#test-test-alerts"
+    security_alerts: "#test-security-alerts"
+    info: "#test-info"
+  verticals:
+    - engineering
+    -

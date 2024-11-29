@@ -1,0 +1,6 @@
+name: tk-core-deps
+runtime:
+  name: python
+  options:
+    virtualenv: venv
+description: DevOps owned stack providing shared config and secrets for TK services.

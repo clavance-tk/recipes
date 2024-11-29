@@ -1,0 +1,12 @@
+# Changes here will be overwritten by Copier
+_commit: 2.4.2
+_src_path: git@github.com:travelperk/tk-dev-create-copier.git
+dev_port: 4000
+project_name: recipes
+project_runtime: python3.11
+project_type: lambda
+rest_paths:
+-   function: get-recipes
+    method: GET
+    path: recipes
+squad_name: support-os
