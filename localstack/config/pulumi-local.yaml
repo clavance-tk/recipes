@@ -298,22 +298,6 @@ config:
 
     - kind: lambda
       code_path: src
-      handler: api/handler.list_recipes_handler
-      memory_size: 256
-      name: list-recipes
-      runtime: python3.11
-      timeout: 600
-      vpc_enabled: false
-      datadog_enabled: false
-      env:
-        PYTHONPATH: src/:lib/
-        ENV: local
-        LOG_LEVEL: DEBUG
-        DEBUG: True
-        DEBUGGING_PORT: 12345
-
-    - kind: lambda
-      code_path: src
       handler: api/handler.list_or_search_recipes_handler
       memory_size: 256
       name: list-or-search-recipes
