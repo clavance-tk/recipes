@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   dependency-installer:
     image: public.ecr.aws/lambda/python:3.11 # Need to use the same image that will run the dependencies to make sure everything is set up correctly
