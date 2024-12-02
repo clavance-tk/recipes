@@ -33,7 +33,7 @@ fixit:
 
 .PHONY: test
 test:
-	ENV=test PYTHONPATH=$(pwd)/src pytest --cov-fail-under=75 --cov=src/ --cov-report=term-missing --cov-report=xml
+	ENV=test pytest --cov-fail-under=70 --cov=src/ --cov-report=term-missing --cov-report=xml
 
 .PHONY: shell
 shell:

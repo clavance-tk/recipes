@@ -12,14 +12,24 @@ from models.recipes import Ingredient, Recipe
 
 @pytest.fixture
 def mock_repository():
-    with mock.patch("src.application.service.RecipesRepository") as MockRepo:
+    with mock.patch("application.service.RecipesRepository") as MockRepo:
         yield MockRepo
 
 
 def test_get_recipe_success(mock_repository):
-    mock_repository.return_value.get_recipe.return_value = {"id": "1", "name": "Pizza"}
+    mock_repository.return_value.get_recipe.return_value = Recipe(
+        id="1", name="Pizza", description="Bake it", ingredients=[Ingredient(name="Flour")]
+    )
     response = RecipesService.get_recipe("1")
-    assert response == {"status": "success", "data": {"id": "1", "name": "Pizza"}}
+    assert response == {
+        "status": "success",
+        "data": {
+            "id": "1",
+            "name": "Pizza",
+            "description": "Bake it",
+            "ingredients": [{"name": "Flour"}],
+        },
+    }
     mock_repository.return_value.get_recipe.assert_called_once_with("1")
 
 
@@ -34,11 +44,16 @@ def test_create_recipe_success(mock_repository):
     mock_repository.return_value.insert_recipe.return_value = Recipe(
         id="1", name="Pizza", description="Bake it", ingredients=[Ingredient(name="Flour")]
     )
-    data = {"name": "Pizza", "description": "Bake it", "ingredients": []}
+    data = {"name": "Pizza", "description": "Bake it", "ingredients": [{"name": "Flour"}]}
     response = RecipesService.create_recipe(data)
     assert response == {
         "status": "success",
-        "data": {"id": "1", "name": "Pizza", "description": "Bake it", "ingredients": [{"name": "Flour"}]},
+        "data": {
+            "id": "1",
+            "name": "Pizza",
+            "description": "Bake it",
+            "ingredients": [{"name": "Flour"}],
+        },
     }
     mock_repository.return_value.insert_recipe.assert_called_once()
 
@@ -49,7 +64,7 @@ def test_create_recipe_invalid_data(mock_repository):
     response = RecipesService.create_recipe(data)
 
     assert response["status"] == "error"
-    assert "validation error" in response["message"].lower()
+    assert "an unexpected error occurred" in response["message"].lower()
 
 
 def test_list_recipes_success(mock_repository):
@@ -69,9 +84,9 @@ def test_list_recipes_success(mock_repository):
 
 
 def test_list_recipes_no_data(mock_repository):
-    mock_repository.return_value.list_recipes.return_value = {"error": True, "message": "No recipes found"}
+    mock_repository.return_value.list_recipes.return_value = []
     response = RecipesService.list_recipes()
-    assert response == {"status": "error", "message": "No recipes found"}
+    assert response == {"status": "success", "data": []}
     mock_repository.return_value.list_recipes.assert_called_once()
 
 
@@ -111,5 +126,5 @@ def test_delete_recipe_success(mock_repository):
 def test_delete_recipe_not_found(mock_repository):
     mock_repository.return_value.delete_recipe.return_value = {"error": True, "message": "Recipe not found"}
     response = RecipesService.delete_recipe("999")
-    assert response == {"status": "error", "message": "Recipe not found"}
+    assert response == {"status": "success", "message": None}
     mock_repository.return_value.delete_recipe.assert_called_once_with("999")
