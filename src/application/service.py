@@ -54,12 +54,12 @@ class RecipesService:
             return {"status": "error", "message": "An unexpected error occurred."}
 
     @staticmethod
-    def list_recipes() -> Dict[str, Union[str, List[Recipe]]]:
+    def list_recipes() -> Dict[str, Union[str, List[Dict[str, Any]]]]:
         try:
             repository = RecipesRepository()
             recipes = repository.list_recipes()
 
-            recipes_data = [Recipe(**item) for item in recipes]
+            recipes_data = [Recipe(**item).model_dump() for item in recipes]
 
             return {"status": "success", "data": recipes_data}
 
@@ -71,12 +71,12 @@ class RecipesService:
             return {"status": "error", "message": "An unexpected error occurred."}
 
     @staticmethod
-    def search_recipes_by_name(name_substring: str) -> Dict[str, Union[str, List[Recipe]]]:
+    def search_recipes_by_name(name_substring: str) -> Dict[str, Union[str, List[Dict[str, Any]]]]:
         try:
             repository = RecipesRepository()
             recipes = repository.search_recipes_by_name(name_substring)
 
-            recipes_data = [Recipe(**item) for item in recipes]
+            recipes_data = [Recipe(**item).model_dump() for item in recipes]
 
             return {"status": "success", "data": recipes_data}
 
