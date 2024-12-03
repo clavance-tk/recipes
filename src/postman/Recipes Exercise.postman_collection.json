@@ -1,0 +1,248 @@
+{
+	"info": {
+		"_postman_id": "b39ec3d8-8987-42bd-aa8e-a02cc885e050",
+		"name": "Recipes Exercise",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "40074915"
+	},
+	"item": [
+		{
+			"name": "Create Recipe (Burger)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Extract Recipe ID and save to environment\", () => {",
+							"    let responseData = pm.response.json();",
+							"    pm.expect(responseData.data).to.have.property(\"id\");",
+							"    pm.environment.set(\"recipe_id\", responseData.data.id);",
+							"    console.log(\"Recipe ID saved:\", responseData.data.id);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"Burger\",\n    \"description\": \"Grill the meat, add the beet\",\n    \"ingredients\": [{\"name\": \"bun\"}, {\"name\": \"beetroot\"}, {\"name\": \"patty\"}]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:4000/restapis/recipes/test/_user_request_/recipes",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4000",
+					"path": [
+						"restapis",
+						"recipes",
+						"test",
+						"_user_request_",
+						"recipes"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Recipe (Curry)",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"Chicken curry\",\n    \"description\": \"Boil the rice, add some spice\",\n    \"ingredients\": [{\"name\": \"rice\"}, {\"name\": \"chicken\"}, {\"name\": \"spices\"}]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:4000/restapis/recipes/test/_user_request_/recipes",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4000",
+					"path": [
+						"restapis",
+						"recipes",
+						"test",
+						"_user_request_",
+						"recipes"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Retrieve Recipe by ID",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:4000/restapis/recipes/test/_user_request_/recipes/{{recipe_id}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4000",
+					"path": [
+						"restapis",
+						"recipes",
+						"test",
+						"_user_request_",
+						"recipes",
+						"{{recipe_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "List Recipes",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:4000/restapis/recipes/test/_user_request_/recipes",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4000",
+					"path": [
+						"restapis",
+						"recipes",
+						"test",
+						"_user_request_",
+						"recipes"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Search for Recipe by Substring",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:4000/restapis/recipes/test/_user_request_/recipes?name=Ch",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4000",
+					"path": [
+						"restapis",
+						"recipes",
+						"test",
+						"_user_request_",
+						"recipes"
+					],
+					"query": [
+						{
+							"key": "name",
+							"value": "Ch"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Recipe by ID",
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"Burger\",\n    \"description\": \"Burgers are unhealthy, eat some cabbage\",\n    \"ingredients\": [{\"name\": \"cabbage\"}]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:4000/restapis/recipes/test/_user_request_/recipes/{{recipe_id}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4000",
+					"path": [
+						"restapis",
+						"recipes",
+						"test",
+						"_user_request_",
+						"recipes",
+						"{{recipe_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Recipe by ID",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:4000/restapis/recipes/test/_user_request_/recipes/{{recipe_id}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4000",
+					"path": [
+						"restapis",
+						"recipes",
+						"test",
+						"_user_request_",
+						"recipes",
+						"{{recipe_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Retrieve Recipe (Not Found)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:4000/restapis/recipes/test/_user_request_/recipes/{{recipe_id}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4000",
+					"path": [
+						"restapis",
+						"recipes",
+						"test",
+						"_user_request_",
+						"recipes",
+						"{{recipe_id}}"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
