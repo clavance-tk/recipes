@@ -20,7 +20,6 @@ def get_recipe_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 def post_recipe_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     try:
         body = json.loads(event["body"])
-        print(f"Parsed body: {body}")
 
         response = RecipesService.create_recipe(body)
 
