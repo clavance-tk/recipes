@@ -23,7 +23,7 @@ def post_recipe_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 
         response = RecipesService.create_recipe(body)
 
-        r = {"statusCode": 201 if response["status"] == "success" else 400, "body": json.dumps(response)}
+        response = {"statusCode": 201 if response["status"] == "success" else 400, "body": json.dumps(response)}
 
         return r
     except json.JSONDecodeError as e:
